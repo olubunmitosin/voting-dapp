@@ -17,6 +17,7 @@ Technologies:
 -   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
 -   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
 -   **Sepolia Testnet**: Chain to test the functionalities since of course we won't be using real money
+-   **Solidity**: Smart contract development programming language version ^0.8.0
 
 ## Documentation
 
