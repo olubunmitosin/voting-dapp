@@ -8,8 +8,14 @@ contract DeployDAO is Script {
     DAO public dao;
 
     function run() public {
-        // Broadcast the deployment transaction
-        vm.startBroadcast();
+        // Get the deployer private key from the environment variable
+        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+
+        // Get the deployer address from the private key
+        address deployer = vm.addr(deployerPrivateKey);
+
+        // Broadcast the deployment transaction with the deployer as tx.origin
+        vm.startBroadcast(deployer);
         dao = new DAO();
         console.log("DAO deployed to:", address(dao));
 
@@ -19,19 +25,13 @@ contract DeployDAO is Script {
         address member2 = address(0x003);
         address voter1 = address(0x004);
 
-        vm.prank(msg.sender);
+        // All subsequent calls within the broadcast will originate from the deployer
         dao.addMember(member1);
         console.log("Member added:", member1);
         dao.addMember(member2);
         console.log("Member added:", member2);
         dao.addMember(voter1);
         console.log("Member added:", voter1);
-
-        dao.grantVotingRights(member1);
-        console.log("Voting rights granted to:", member1);
-        dao.grantVotingRights(voter1);
-        console.log("Voting rights granted to:", voter1);
-
         vm.stopBroadcast();
     }
 }
