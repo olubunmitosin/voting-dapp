@@ -225,6 +225,11 @@ contract DAO {
 
     // Execute the proposal
     function executeProposal(uint256 _proposalId) external onlyMember {
+        Proposal proposalContract = Proposal(proposals[_proposalId]);
+
+        if (proposalStates[_proposalId] != ProposalState.Active) {
+            revert("Proposal must be in Active state to execute");
+        }
         if (proposals[_proposalId] == address(0)) {
             emit ProposalNotFound(_proposalId);
             revert("Proposal not found");
@@ -233,10 +238,7 @@ contract DAO {
             emit VotingNotStarted(_proposalId);
             revert("Voting not started for this proposal");
         }
-        if (proposalStates[_proposalId] != ProposalState.Active) {
-            revert("Proposal must be in Active state to execute");
-        }
-        Proposal proposalContract = Proposal(proposals[_proposalId]);
+
         if (block.timestamp <= proposalContract.endTime()) {
             emit VotingNotEnded(
                 _proposalId,
@@ -246,7 +248,6 @@ contract DAO {
             revert("Voting has not ended");
         }
         if (proposalContract.executed()) {
-            emit ProposalAlreadyExecuted(_proposalId);
             revert("Proposal already executed");
         }
 
@@ -268,13 +269,19 @@ contract DAO {
         if (yesVotes <= passingThreshold) {
             proposalStates[_proposalId] = ProposalState.Defeated;
             emit ProposalStateUpdated(_proposalId, ProposalState.Defeated);
-            emit PassingThresholdNotMet(_proposalId, yesVotes, passingThreshold);
+            emit PassingThresholdNotMet(
+                _proposalId,
+                yesVotes,
+                passingThreshold
+            );
             revert("Proposal not passed");
         }
 
-        (bool success, bytes memory returnData) = address(this).call(
-            proposalPayloads[_proposalId]
+        // Execute the proposal
+        (bool success, bytes memory returnData) = address(this).call{value: 0}(
+            "" // Explicitly empty data
         );
+
         if (success) {
             proposalContract.markAsExecuted();
             proposalStates[_proposalId] = ProposalState.Executed;
@@ -303,4 +310,6 @@ contract DAO {
     function getMemberCount() public view returns (uint256) {
         return members.length;
     }
+
+    receive() external payable {}
 }

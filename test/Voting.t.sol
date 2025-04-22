@@ -95,8 +95,9 @@ contract VotingTest is Test {
 
     function testCastVoteFromZeroAddress() public {
         vm.expectRevert("Voter address cannot be zero");
-        emit ZeroAddressVoter(address(0));
+        vm.prank(address(0)); // Set the sender to the zero address
         voting.castVote(1);
+        emit ZeroAddressVoter(address(0)); // Emit the event after the call (for verification if needed)
     }
 
     function testGetVoteCount() public {
